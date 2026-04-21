@@ -132,11 +132,12 @@ static void tim_setup(void)
 	 * (These are actually default values after reset above, so this call
 	 * is strictly unnecessary, but demos the api for alternative settings)
 	 */
+
   // CAMBIAR DE CENTER_3 A EDGE
-	timer_set_mode(TIM1, TIM_CR1_CKD_CK_INT,
-                   TIM_CR1_CMS_CENTER_3, TIM_CR1_DIR_UP);
 	// timer_set_mode(TIM1, TIM_CR1_CKD_CK_INT,
-  //                  TIM_CR1_CMS_EDGEM_CR1_DIR_UP);
+  //                  TIM_CR1_CMS_CENTER_3, TIM_CR1_DIR_UP);
+	timer_set_mode(TIM1, TIM_CR1_CKD_CK_INT,
+                   TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
 
 
 	/*
@@ -144,7 +145,7 @@ static void tim_setup(void)
 	 * might not be the raw APB1/APB2 clocks.  In various conditions they
 	 * are doubled.  See the Reference Manual for full details!
 	 */
-	timer_set_prescaler(TIM1, 0xFFFF); // 2563Hz clk
+	// timer_set_prescaler(TIM1, 0xFFFF); // 2563Hz clk
   timer_set_prescaler(TIM1, 0x00FF); // 
   
     //timer_set_repetition_counter(TIM1, 15);
@@ -152,14 +153,22 @@ static void tim_setup(void)
     timer_continuous_mode(TIM1);
 
     /* Count period */
-	timer_set_period(TIM1, 2563); // CAMBIAAAAAAAAAAAAAAAAAAAAAAAR aa 100ms y a 62.5ms
+	// timer_set_period(TIM1, 2563);  //
+  // timer_set_period(TIM1, 65548); // 1s 
+  // timer_set_period(TIM1, 6555);  // 100ms
+  // timer_set_period(TIM1, 4096);  // 62.5ms
+	timer_set_period(TIM1, 13124); // 20ms en prescaler: 0x00FF
+
 
 	/* Set the initual output compare value for OC1. */
-	timer_set_oc_value(TIM1, TIM_OC1, 320); // no usar los negativos
-  // timer_set_oc_value(TIM1, TIM_OC1, (320/2); 
-  // timer_set_oc_value(TIM1, TIM_OC1, (320*0.05);
-  // timer_set_oc_value(TIM1, TIM_OC1, (320*0.075);
-  // timer_set_oc_value(TIM1, TIM_OC1, (320*0.1);   
+	// timer_set_oc_value(TIM1, TIM_OC1, 2563); // 100%
+	// timer_set_oc_value(TIM1, TIM_OC1, 2563/2); // 50%
+
+
+	timer_set_oc_value(TIM1, TIM_OC1, 13124*0.05);  //   5% 20ms
+	// timer_set_oc_value(TIM1, TIM_OC1, 13124*0.075); // 7.5% 20ms
+	// timer_set_oc_value(TIM1, TIM_OC1, 13124*0.1);   //  10% 20ms
+
 
     /* Disable outputs. */
     //timer_enable_oc_output(TIM1, TIM_OC1);
@@ -224,24 +233,24 @@ int main(void)
     
 
     // // 0% por 2 segundos
-    // timer_set_oc_value(TIM1, TIM_OC1, 0);
-    // for (int i = 0; i < 2 * 6000000; i++) __asm__("nop");
+    // timer_set_oc_value(TIM1, TIM_OC1, 2563*0);
+    // for (i = 0; i < 2 * 6000000; i++) __asm__("nop");
 
     // // 10% por 1 segundo
-    // timer_set_oc_value(TIM1, TIM_OC1, 256);
-    // for (int i = 0; i < 1 * 6000000; i++) __asm__("nop");
+    // timer_set_oc_value(TIM1, TIM_OC1, 2563*0.1);
+    // for (i = 0; i < 1 * 6000000; i++) __asm__("nop");
 
     // // 100% por 3 segundos
     // timer_set_oc_value(TIM1, TIM_OC1, 2563);
-    // for (int i = 0; i < 3 * 6000000; i++) __asm__("nop");
+    // for (i = 0; i < 3 * 6000000; i++) __asm__("nop");
 
     // // 50% por 1 segundo
-    // timer_set_oc_value(TIM1, TIM_OC1, 1281);
-    // for (int i = 0; i < 1 * 6000000; i++) __asm__("nop");
+    // timer_set_oc_value(TIM1, TIM_OC1, 2563/2);
+    // for (i = 0; i < 1 * 6000000; i++) __asm__("nop");
 
     // // 10% por 5 segundos
-    // timer_set_oc_value(TIM1, TIM_OC1, 256);
-    // for (int i = 0; i < 5 * 6000000; i++) __asm__("nop");
+    // timer_set_oc_value(TIM1, TIM_OC1, 2563*0.1);
+    // for (i = 0; i < 5 * 6000000; i++) __asm__("nop");
 	}
 
 	return 0;
