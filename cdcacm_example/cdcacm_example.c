@@ -17,11 +17,10 @@
  */
 
 #include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/adc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/timer.h>
 #include <libopencm3-plus/newlib/syscall.h>
-#include "adc_cdcacm.h"
+#include "cdcacm_example.h"
 #include <libopencm3-plus/newlib/devices/cdcacm.h>
 #include <libopencm3-plus/newlib/devices/usart.h>
 #include <stdio.h>
@@ -44,19 +43,6 @@ void leds_init(void) {
 	gpio_mode_setup(GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO5);
 }
 
-
-static void adc_setup(void)
-{
-	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO0);
-
-	adc_power_off(ADC1);
-	adc_disable_scan_mode(ADC1);
-	adc_set_sample_time_on_all_channels(ADC1, ADC_SMPR_SMP_3CYC);
-
-	adc_power_on(ADC1);
-
-}
-
 void system_init(void) {
   leds_init();
 
@@ -70,10 +56,6 @@ void system_init(void) {
   /* devoptab_list[1] = &dotab_usart; */
   /* devoptab_list[2] = &dotab_usart; */
   /* usart_init(); */
-
-  /* ADC*/
-  rcc_periph_clock_enable(RCC_GPIOA);
-  rcc_periph_clock_enable(RCC_ADC1);
 }
 
 void init_console(void) {
@@ -89,43 +71,44 @@ void init_console(void) {
   printf("Stdin cleared\n");
 }
 
-static uint16_t read_adc_naiive(uint8_t channel)
-{
-	uint8_t channel_array[16];
-	channel_array[0] = channel;
-	adc_set_regular_sequence(ADC1, 1, channel_array);
-	adc_start_conversion_regular(ADC1);
-	while (!adc_eoc(ADC1));
-	uint16_t reg16 = adc_read_regular(ADC1);
-	return reg16;
+void delay_ms(int ms) {
+    for (int i = 0; i < ms * 8000; i++) {
+        __asm__("nop");
+    }
 }
 
 int main(void)
 {
   system_init();
   init_console();
-  adc_setup();
   char cmd_s[50]="";
   char cmd[10]="";
   char confirm[10]="";
   int i, j;
   int c=0;
   int n_char=0;
+  int running=0;
+  int count=0;
 
 
   while (1){
-    float input_adc0 = (read_adc_naiive(0)*2.8)/4095;
-    printf("Test %f\n\r", input_adc0);
-    if ((lo_poll(stdin) > 0)) {
-      i=0;
-      if (lo_poll(stdin) > 0) {
-    	c=0;
-    	while (c!='\r') {
-    	  c=getc(stdin);
-    	  i++;
-    	  putc(c, stdout);
-    	}
-      }
+    // Detectar Enter
+    if (lo_poll(stdin) > 0) {
+        char c = getc(stdin);
+        putc(c, stdout);
+        if (c == '\r') {
+            running = 1;   // iniciar conteo
+            count = 0;
+        } else {
+            running = 0;   // cualquier otra tecla detiene
+        }
+    }
+    if (running) {
+        printf("Count: %d\n\r", count);
+        delay_ms(500);
+
+        count++;
+        if (count > 10) count = 0;
     }
   }
 }
